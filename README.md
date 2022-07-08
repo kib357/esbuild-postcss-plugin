@@ -39,7 +39,7 @@ A regular expression to filter source files processed with postcss-modules
 **Default**: `/\.module.css$/`
 
 ```
-postCSSPlugin({ filter: /\.module.css$/ })
+postCSSPlugin({ modulesFilter: /\.module.css$/ })
 ```
 
 ### modulesOptions
