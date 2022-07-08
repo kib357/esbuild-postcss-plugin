@@ -7,23 +7,22 @@ interface Processor {
   >;
 }
 
-export const makeProcessCSS =
-  (plugins: AcceptedPlugin[]): Processor =>
-  async (input: string, filePath: string) => {
-    const result = await postcss(plugins).process(input, {
-      from: filePath,
-      map: false,
-    });
+export const makeProcessCSS = (plugins: AcceptedPlugin[]): Processor => {
+  if (plugins.length === 0) return (input: string) => Promise.resolve([input]);
 
+  const process = makeProcess(plugins);
+  return async (input: string, filePath: string) => {
+    const result = await process(input, filePath);
     return [result.css];
   };
+};
 
 export const makeProcessModuleCss = (
   plugins: AcceptedPlugin[],
   modulesConfig = {}
 ): Processor => {
   let classes = {};
-  const pluginsWithModules = [
+  const process = makeProcess([
     ...plugins,
     cssModules({
       ...modulesConfig,
@@ -31,15 +30,17 @@ export const makeProcessModuleCss = (
         Object.assign(classes, json);
       },
     }),
-  ];
-  const processor = postcss(pluginsWithModules);
+  ]);
 
   return async (input: string, filePath: string) => {
     classes = {};
-    const result = await processor.process(input, {
-      from: filePath,
-      map: false,
-    });
+    const result = await process(input, filePath);
     return [result.css, classes];
   };
 };
+
+function makeProcess(plugins: AcceptedPlugin[]) {
+  const processor = postcss(plugins);
+  return (input: string, filePath: string) =>
+    processor.process(input, { from: filePath, map: false });
+}

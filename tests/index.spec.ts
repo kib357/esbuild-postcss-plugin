@@ -60,7 +60,10 @@ it("loads css @import", async () => {
 });
 
 it("css @import bypass modules", async () => {
-  const { outputFiles } = await build("./src/import.ts", postCSSPlugin());
+  const { outputFiles } = await build(
+    "./src/import.ts",
+    postCSSPlugin({ modulesFilter: /\.css$/ })
+  );
 
   expect(outputFiles[1].text).toMatch(/.style {/);
 });

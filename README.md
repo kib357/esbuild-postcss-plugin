@@ -22,16 +22,6 @@ plugins: [
 
 ## Options
 
-### baseUrl
-
-Base directory to resolve non-relative module names imported through CSS @import rule.
-
-**Default**: `""`
-
-```
-postCSSPlugin({ baseUrl: path.resolve(__dirname, './src') })
-```
-
 ### filter
 
 A regular expression to filter source files processed by plugin

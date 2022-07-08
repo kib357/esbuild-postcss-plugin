@@ -25,12 +25,8 @@ const postCSSPlugin: PostCSSPlugin = ({
       build.onResolve({ filter }, async (args) => {
         if (args.namespace === "postcss-resolve") return;
 
-        const useBaseUrl = Boolean(baseUrl && args.path.indexOf(".") !== 0);
-        const resolveDir = useBaseUrl ? baseUrl : args.resolveDir;
-        const resolvePath = useBaseUrl ? `./${args.path}` : args.path;
-
-        const result = await build.resolve(resolvePath, {
-          resolveDir,
+        const result = await build.resolve(args.path, {
+          resolveDir: args.resolveDir,
           namespace: "postcss-resolve",
         });
         if (result.errors.length > 0) {
