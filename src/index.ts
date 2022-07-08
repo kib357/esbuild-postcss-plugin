@@ -22,52 +22,53 @@ const postCSSPlugin: PostCSSPlugin = ({
       const processCSS = makeProcessCSS(plugins);
       const processModuleCss = makeProcessModuleCss(plugins, modulesOptions);
 
-      build.onResolve({ filter }, async (args) => {
+      build.onResolve({ filter: modulesFilter }, async (args) => {
+        if (args.kind !== "import-rule") return;
         if (args.namespace === "postcss-resolve") return;
 
         const result = await build.resolve(args.path, {
           resolveDir: args.resolveDir,
           namespace: "postcss-resolve",
         });
-        if (result.errors.length > 0) {
-          return { errors: result.errors };
-        }
-
-        const isModuleFilterPassed = modulesFilter.test(args.path);
-        const isInternalCssImport = args.kind === "import-rule";
+        if (result.errors.length > 0) return { errors: result.errors };
 
         return {
           path: result.path,
-          namespace: "postcss",
-          pluginData: {
-            isModule: isModuleFilterPassed && !isInternalCssImport,
-          },
+          pluginData: { noModule: true },
         };
       });
 
       build.onLoad(
-        { filter, namespace: "postcss" },
+        { filter: modulesFilter },
         async ({ path: filePath, pluginData }) => {
-          const processor = pluginData.isModule ? processModuleCss : processCSS;
+          if (pluginData?.noModule) return;
+
           const [css, classes] = await cache.getOrTransform(filePath, (input) =>
-            processor(input, filePath)
+            processModuleCss(input, filePath)
           );
-
-          const resolveDir = path.dirname(filePath);
-
-          if (!pluginData.isModule)
-            return { contents: css, loader: "css", resolveDir };
 
           const modulePath = `${filePath}.${virtualModuleExt}`;
           cssMap.set(modulePath, css);
           return {
             contents: makeCssModuleJs(modulePath, classes),
             loader: "js",
-            resolveDir,
+            resolveDir: path.dirname(filePath),
             watchFiles: [filePath],
           };
         }
       );
+
+      build.onLoad({ filter }, async ({ path: filePath, pluginData }) => {
+        const [css] = await cache.getOrTransform(filePath, (input) =>
+          processCSS(input, filePath)
+        );
+
+        return {
+          contents: css,
+          loader: "css",
+          resolveDir: path.dirname(filePath),
+        };
+      });
 
       build.onResolve({ filter: virtualModuleFilter }, (args) => {
         return {

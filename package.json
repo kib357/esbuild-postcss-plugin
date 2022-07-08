@@ -1,6 +1,6 @@
 {
   "name": "esbuild-postcss-plugin",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "ESBuild plugin for PostCSS with CSS modules",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
