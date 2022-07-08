@@ -95,7 +95,7 @@ const postCSSPlugin: PostCSSPlugin = ({
   };
 };
 
-export default postCSSPlugin;
+export = postCSSPlugin;
 
 const makeCssModuleJs = (
   modulePath: string,
