@@ -22,14 +22,26 @@ const postCSSPlugin: PostCSSPlugin = ({
       const processCSS = makeProcessCSS(plugins);
       const processModuleCss = makeProcessModuleCss(plugins, modulesOptions);
 
-      build.onResolve({ filter }, (args) => {
-        const base = args.path.indexOf(".") === 0 ? args.resolveDir : baseUrl;
+      build.onResolve({ filter }, async (args) => {
+        if (args.namespace === "postcss-resolve") return;
+
+        const useBaseUrl = Boolean(baseUrl && args.path.indexOf(".") !== 0);
+        const resolveDir = useBaseUrl ? baseUrl : args.resolveDir;
+        const resolvePath = useBaseUrl ? `./${args.path}` : args.path;
+
+        const result = await build.resolve(resolvePath, {
+          resolveDir,
+          namespace: "postcss-resolve",
+        });
+        if (result.errors.length > 0) {
+          return { errors: result.errors };
+        }
 
         const isModuleFilterPassed = modulesFilter.test(args.path);
-        const isInternalCssImport = args.namespace === "postcss";
+        const isInternalCssImport = args.kind === "import-rule";
 
         return {
-          path: path.resolve(base, args.path),
+          path: result.path,
           namespace: "postcss",
           pluginData: {
             isModule: isModuleFilterPassed && !isInternalCssImport,
