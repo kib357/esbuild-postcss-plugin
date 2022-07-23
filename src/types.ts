@@ -7,6 +7,7 @@ type PostCSSPluginOptions = {
   modulesFilter?: RegExp;
   modulesOptions?: ModulesOptions;
   plugins?: AcceptedPlugin[];
+  disableCache?: true;
 };
 
 export type PostCSSPlugin = (options?: PostCSSPluginOptions) => Plugin;

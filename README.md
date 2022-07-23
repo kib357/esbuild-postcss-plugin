@@ -12,12 +12,10 @@ npm i esbuild-postcss-plugin
 
 Add plugin to ESBuild build config
 
-```
+```typescript
 const postCSSPlugin = require("esbuild-postcss-plugin");
 
-plugins: [
-  postCSSPlugin()
-]
+plugins: [postCSSPlugin()];
 ```
 
 ## Options
@@ -28,8 +26,18 @@ A regular expression to filter source files processed by plugin
 
 **Default**: `/\.css$/`
 
+```typescript
+postCSSPlugin({ filter: /\.css$/ });
 ```
-postCSSPlugin({ filter: /\.css$/ })
+
+### disableCache
+
+Cache gives more speed on rebuild. Unfortunately, in cases when postcss transform result depends on other files, cache will cause incorrect behavior. For example, tailwindcss scans template files to build final CSS, and changes in templates require CSS cache invalidation.
+
+**Default**: `false`
+
+```typescript
+postCSSPlugin({ disableCache: true });
 ```
 
 ### modulesFilter

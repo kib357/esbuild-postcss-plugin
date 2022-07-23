@@ -1,24 +1,24 @@
 import { Plugin, PluginBuild } from "esbuild";
 import path from "path";
 import { makeProcessCSS, makeProcessModuleCss } from "./postcss";
-import { TransformCache } from "./transformCache";
+import { FakeCache, TransformCache } from "./transformCache";
 import { PostCSSPlugin } from "./types";
 
 const virtualModuleExt = "postcss-module";
 const virtualModuleFilter = new RegExp(`\.${virtualModuleExt}$`);
 
 const postCSSPlugin: PostCSSPlugin = ({
-  baseUrl = "",
   filter = /\.css$/,
   modulesOptions = {},
   modulesFilter = /\.module.css$/,
   plugins = [],
+  disableCache,
 } = {}): Plugin => {
   return {
     name: "postcss-loader",
     setup(build: PluginBuild) {
       const cssMap = new Map();
-      const cache = new TransformCache();
+      const cache = disableCache ? new FakeCache() : new TransformCache();
       const processCSS = makeProcessCSS(plugins);
       const processModuleCss = makeProcessModuleCss(plugins, modulesOptions);
 
@@ -58,7 +58,7 @@ const postCSSPlugin: PostCSSPlugin = ({
         }
       );
 
-      build.onLoad({ filter }, async ({ path: filePath, pluginData }) => {
+      build.onLoad({ filter }, async ({ path: filePath }) => {
         const [css] = await cache.getOrTransform(filePath, (input) =>
           processCSS(input, filePath)
         );

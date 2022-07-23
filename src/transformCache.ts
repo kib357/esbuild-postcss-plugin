@@ -19,3 +19,13 @@ export class TransformCache {
     return value.contents;
   }
 }
+
+export class FakeCache {
+  async getOrTransform<T>(
+    filePath: string,
+    transform: (input: string) => Promise<T>
+  ): Promise<T> {
+    const input = await fs.readFile(filePath, "utf8");
+    return transform(input);
+  }
+}
